@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Reel
 
-## Getting Started
+A movie discovery homepage built on the [TMDB API](https://developer.themoviedb.org/docs/getting-started).
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Trending movies** for today or this week. The #1 movie gets a hero banner, and the poster grid loads more as you scroll.
+- **Movie details**: backdrop, poster, rating, runtime, genres, tagline, overview, director and writers, top cast, budget and box office, IMDb and official-site links, and recommendations.
+- **Trailers** play in a modal with an embedded YouTube player.
+- **Where to watch** in the US (stream, rent or buy), via TMDB's JustWatch data.
+- **Search** with debounced, shareable URLs (`/search?q=dune`) and infinite results.
+- Server-rendered first paint, plus loading skeletons and error and not-found states.
+
+## Stack
+
+Next.js 15 (App Router) · React 19 · TailwindCSS 4 · tRPC 11 + TanStack Query · shadcn/ui (Radix) · zod
+
+## How it fits together
+
+```
+src/
+  server/tmdb/        server-only TMDB client; responses validated with zod
+  server/api/         tRPC router (movies.trending / search / byId / genres)
+  trpc/               client provider + RSC helpers (prefetch & hydrate)
+  app/                routes: / , /movie/[id] , /search
+  components/         UI (shadcn primitives in components/ui)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- The TMDB token only exists on the server. The browser talks to `/api/trpc`, never to TMDB directly.
+- Server Components prefetch through the tRPC router and hydrate React Query, so the home grid renders on the server and then paginates on the client without a loading flash.
+- TMDB responses go through Next's fetch cache (15 min for trending, 1 h for details, 24 h for genres).
+- `movies.byId` uses `append_to_response` to fetch details, credits, videos, recommendations and watch providers in one TMDB request, then shapes them into a smaller payload for the UI.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Running locally
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.example .env.local   # add TMDB_ACCESS_TOKEN (or TMDB_API_KEY)
+pnpm install
+pnpm dev
+```
 
-## Learn More
+Get credentials at https://www.themoviedb.org/settings/api.
 
-To learn more about Next.js, take a look at the following resources:
+## Deploying
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+On Vercel (or any Node host), set `TMDB_ACCESS_TOKEN` (or `TMDB_API_KEY`) as an environment variable, then build with `pnpm build`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This product uses the TMDB API but is not endorsed or certified by TMDB.
