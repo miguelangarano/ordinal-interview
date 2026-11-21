@@ -37,7 +37,8 @@ export function SearchBox() {
         if (pathname === "/search") router.replace(url);
         else router.push(url);
       } else if (pathname === "/search") {
-        router.replace("/search");
+        // Clearing the search returns to the trending homepage.
+        router.replace("/");
       }
     }, 300);
     return () => clearTimeout(id);
