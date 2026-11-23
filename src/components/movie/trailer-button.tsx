@@ -1,6 +1,7 @@
 "use client";
 
 import { Play } from "lucide-react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,6 +17,8 @@ export function TrailerButton({
   videoKey: string;
   title: string;
 }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -23,7 +26,17 @@ export function TrailerButton({
           <Play className="fill-current" /> Watch trailer
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl overflow-hidden border-none bg-black p-0 sm:max-w-4xl">
+      <DialogContent
+        ref={contentRef}
+        className="max-w-4xl overflow-hidden border-none bg-black p-0 sm:max-w-4xl"
+        // By default focus lands on the first focusable element: the YouTube
+        // iframe. Keys pressed there go to YouTube's page, not ours, so
+        // Escape could never close the dialog. Keep focus on the dialog.
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          contentRef.current?.focus();
+        }}
+      >
         <DialogTitle className="sr-only">{title} trailer</DialogTitle>
         {/* The iframe only mounts while the dialog is open, so closing it stops playback. */}
         <div className="aspect-video w-full">
