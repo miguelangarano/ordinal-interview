@@ -34,14 +34,13 @@ async function tmdbFetch<T extends z.ZodType>(
     if (value !== undefined) url.searchParams.set(key, String(value));
   }
 
-  const headers: HeadersInit = { accept: "application/json" };
-  if (env.TMDB_ACCESS_TOKEN) {
-    headers.Authorization = `Bearer ${env.TMDB_ACCESS_TOKEN}`;
-  } else if (env.TMDB_API_KEY) {
-    url.searchParams.set("api_key", env.TMDB_API_KEY);
-  }
-
-  const res = await fetch(url, { headers, next: { revalidate } });
+  const res = await fetch(url, {
+    headers: {
+      accept: "application/json",
+      Authorization: `Bearer ${env.TMDB_ACCESS_TOKEN}`,
+    },
+    next: { revalidate },
+  });
   if (!res.ok) {
     throw new TmdbError(`TMDB ${path} failed with ${res.status}`, res.status);
   }
