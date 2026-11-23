@@ -1,5 +1,7 @@
 # Reel
 
+[![CI](https://github.com/miguelangarano/ordinal-interview/actions/workflows/ci.yml/badge.svg)](https://github.com/miguelangarano/ordinal-interview/actions/workflows/ci.yml)
+
 A movie discovery app built on the [TMDB API](https://developer.themoviedb.org/docs/getting-started): see what's trending today, browse by category, plan around upcoming releases, and dig into any movie.
 
 **Live demo:** https://ordinal-interview.vercel.app
@@ -71,6 +73,7 @@ If it's missing, the server fails on its first TMDB request with a message sayin
 | `pnpm build` | Production build |
 | `pnpm start` | Serve the production build (run `pnpm build` first) |
 | `pnpm lint` | Lint with ESLint |
+| `pnpm typecheck` | Type-check with TypeScript |
 | `pnpm test` | Run the unit tests once |
 | `pnpm test:watch` | Run the unit tests in watch mode |
 | `pnpm test:e2e` | Build the app, start it, and run the end-to-end tests |
@@ -116,6 +119,15 @@ They use the real TMDB API, so `.env.local` needs a valid token. They check beha
 ```bash
 E2E_BASE_URL=https://ordinal-interview.vercel.app pnpm test:e2e
 ```
+
+### Continuous integration
+
+[GitHub Actions](.github/workflows/ci.yml) runs on every push and pull request, with two jobs in parallel:
+
+- **Lint, typecheck & unit tests:** `pnpm lint`, `pnpm typecheck`, `pnpm test`
+- **End-to-end tests:** builds the app and runs the full Playwright suite. If a test fails, its trace is uploaded so you can step through what the browser saw.
+
+The e2e job reads the TMDB token from the `TMDB_ACCESS_TOKEN` repository secret. A newer push to the same branch cancels the run still in progress.
 
 ## Stack
 
