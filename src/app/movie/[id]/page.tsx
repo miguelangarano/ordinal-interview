@@ -68,11 +68,27 @@ export default async function MoviePage({ params }: Props) {
   const year = releaseYear(movie.releaseDate);
   const runtime = formatRuntime(movie.runtime);
 
+  // Shown with the credits in the header. "Released" is the norm, so status
+  // only appears when it says something (e.g. "In Production").
   const facts = [
-    ["Status", movie.status],
+    ...(movie.directors.length > 0
+      ? [
+          [
+            movie.directors.length > 1 ? "Directors" : "Director",
+            movie.directors.join(", "),
+          ],
+        ]
+      : []),
+    ...(movie.writers.length > 0
+      ? [["Writing", movie.writers.join(", ")]]
+      : []),
     [
       "Release date",
       movie.releaseDate ? longDate.format(new Date(movie.releaseDate)) : null,
+    ],
+    [
+      "Status",
+      movie.status && movie.status !== "Released" ? movie.status : null,
     ],
     [
       "Original title",
@@ -157,26 +173,23 @@ export default async function MoviePage({ params }: Props) {
               </p>
             )}
 
-            <dl className="mt-6 flex flex-wrap gap-x-10 gap-y-3 text-sm">
-              {movie.directors.length > 0 && (
-                <div>
-                  <dt className="text-muted-foreground">
-                    {movie.directors.length > 1 ? "Directors" : "Director"}
-                  </dt>
-                  <dd className="font-medium">{movie.directors.join(", ")}</dd>
-                </div>
-              )}
-              {movie.writers.length > 0 && (
-                <div>
-                  <dt className="text-muted-foreground">Writing</dt>
-                  <dd className="font-medium">{movie.writers.join(", ")}</dd>
-                </div>
-              )}
-            </dl>
+            {facts.length > 0 && (
+              <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-4 text-sm sm:flex sm:flex-wrap sm:gap-x-10">
+                {facts.map(([label, value]) => (
+                  <div key={label} className="min-w-0">
+                    <dt className="text-muted-foreground">{label}</dt>
+                    <dd className="font-medium">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
 
             <div className="mt-8 flex flex-wrap gap-3">
               {movie.trailerKey && (
-                <TrailerButton videoKey={movie.trailerKey} title={movie.title} />
+                <TrailerButton
+                  videoKey={movie.trailerKey}
+                  title={movie.title}
+                />
               )}
               {movie.imdbId && (
                 <Button asChild size="lg" variant="secondary">
@@ -201,26 +214,12 @@ export default async function MoviePage({ params }: Props) {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[1fr_300px]">
-        <div className="min-w-0">
-          {/* Render the cast immediately; Wikipedia links stream in after. */}
-          <Suspense fallback={<CastList cast={movie.cast} />}>
-            <CastWithWikipedia cast={movie.cast} />
-          </Suspense>
-        </div>
-        <aside className="space-y-6 py-6">
-          <WatchProviders watch={movie.watch} />
-          {facts.length > 0 && (
-            <dl className="space-y-3 rounded-xl border bg-card/50 p-5 text-sm">
-              {facts.map(([label, value]) => (
-                <div key={label} className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">{label}</dt>
-                  <dd className="text-right font-medium">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
-        </aside>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <WatchProviders watch={movie.watch} />
+        {/* Render the cast immediately; Wikipedia links stream in after. */}
+        <Suspense fallback={<CastList cast={movie.cast} />}>
+          <CastWithWikipedia cast={movie.cast} />
+        </Suspense>
       </div>
 
       {movie.recommendations.length > 0 && (
