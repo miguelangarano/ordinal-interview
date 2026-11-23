@@ -20,7 +20,7 @@ export function Hero({
     .slice(0, 3);
 
   return (
-    <section className="relative isolate -mt-16 flex min-h-[70vh] items-end overflow-hidden pt-16">
+    <section className="relative isolate mt-[calc(var(--header-height)*-1)] flex min-h-[70vh] items-end overflow-hidden pt-(--header-height)">
       {backdrop && (
         <Image
           src={backdrop}

@@ -101,7 +101,7 @@ export default async function MoviePage({ params }: Props) {
   return (
     <article>
       {/* Backdrop header */}
-      <div className="relative isolate -mt-16 overflow-hidden pt-16">
+      <div className="relative isolate mt-[calc(var(--header-height)*-1)] overflow-hidden pt-(--header-height)">
         {backdrop && (
           <Image
             src={backdrop}
