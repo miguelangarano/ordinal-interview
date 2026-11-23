@@ -3,7 +3,7 @@ import { ExternalLink, Star } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { cache } from "react";
+import { cache, Suspense } from "react";
 import { MovieCard } from "@/components/movie-card";
 import { CastList } from "@/components/movie/cast-list";
 import { ScrollRow } from "@/components/movie/scroll-row";
@@ -37,6 +37,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: movie.overview,
     openGraph: poster ? { images: [poster] } : undefined,
   };
+}
+
+type Cast = Awaited<ReturnType<typeof getMovie>>["cast"];
+
+async function CastWithWikipedia({ cast }: { cast: Cast }) {
+  const wikipediaUrls = await api.movies
+    .castWikipedia({ personIds: cast.map((c) => c.id) })
+    .catch(() => ({}));
+  return <CastList cast={cast} wikipediaUrls={wikipediaUrls} />;
 }
 
 const usd = new Intl.NumberFormat("en-US", {
@@ -194,7 +203,10 @@ export default async function MoviePage({ params }: Props) {
 
       <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[1fr_300px]">
         <div className="min-w-0">
-          <CastList cast={movie.cast} />
+          {/* Render the cast immediately; Wikipedia links stream in after. */}
+          <Suspense fallback={<CastList cast={movie.cast} />}>
+            <CastWithWikipedia cast={movie.cast} />
+          </Suspense>
         </div>
         <aside className="space-y-6 py-6">
           <WatchProviders watch={movie.watch} />
