@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { englishWikipediaUrls } from "./wikipedia";
 
 function mockFetch(response: Response | Error) {
-  const fn = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => {
+  const fn = vi.fn<typeof fetch>(async () => {
     if (response instanceof Error) throw response;
     return response;
   });
