@@ -56,14 +56,14 @@ function CastCard({
   const photo = tmdbImage(person.profile_path, "w185");
   return (
     <>
-      <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-muted ring-1 ring-white/10 transition group-hover:ring-primary/70 group-focus-visible:ring-2 group-focus-visible:ring-primary">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-muted ring-1 ring-white/10 transition duration-300 ease-out will-change-transform group-hover:scale-[1.06] group-hover:ring-primary/70 group-hover:shadow-2xl group-hover:shadow-primary/10 group-focus-visible:ring-2 group-focus-visible:ring-primary">
         {photo ? (
           <Image
             src={photo}
             alt={person.name}
             fill
             sizes="128px"
-            className="object-cover transition duration-500 group-hover:scale-105"
+            className="object-cover"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">

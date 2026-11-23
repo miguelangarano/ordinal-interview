@@ -30,9 +30,12 @@ export function MovieCard({
   return (
     <Link
       href={`/movie/${movie.id}`}
-      className={cn("group block focus-visible:outline-none", className)}
+      className={cn(
+        "group relative block focus-visible:outline-none hover:z-10 focus-visible:z-10",
+        className,
+      )}
     >
-      <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-muted ring-1 ring-white/10 transition duration-300 group-hover:-translate-y-1 group-hover:ring-primary/70 group-hover:shadow-2xl group-hover:shadow-primary/10 group-focus-visible:ring-2 group-focus-visible:ring-primary">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-muted ring-1 ring-white/10 transition duration-300 ease-out will-change-transform group-hover:scale-[1.06] group-hover:ring-primary/70 group-hover:shadow-2xl group-hover:shadow-primary/10 group-focus-visible:ring-2 group-focus-visible:ring-primary">
         {poster ? (
           <Image
             src={poster}
@@ -40,7 +43,7 @@ export function MovieCard({
             fill
             priority={priority}
             sizes="(min-width: 1280px) 200px, (min-width: 768px) 22vw, 45vw"
-            className="object-cover transition duration-500 group-hover:scale-105"
+            className="object-cover"
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">
