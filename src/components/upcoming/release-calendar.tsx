@@ -3,7 +3,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { addMonths, daysInMonth, firstWeekday, monthLabel } from "@/lib/month";
 import { tmdbImage } from "@/lib/tmdb-image";
@@ -259,13 +258,17 @@ function MonthLink({
       </span>
     );
   }
+  // A plain link (full page load) on purpose. With next/link, clicking a
+  // month arrow while the previous month was still streaming in was
+  // sometimes ignored by the client router, leaving you on the wrong month.
+  // Each month is server-rendered anyway, and loading.tsx still streams first.
   return (
-    <Link
+    <a
       href={`/upcoming?month=${month}`}
       aria-label={label}
       className={className}
     >
       {children}
-    </Link>
+    </a>
   );
 }
