@@ -7,23 +7,27 @@ test.describe("region", () => {
   }) => {
     await page.goto("/movie/693134"); // Dune: Part Two
     const picker = page.getByRole("button", { name: /^Region:/ });
-    await expect(picker).toContainText("US");
+    // The default depends on where the request comes from (US locally, the
+    // visitor's country on Vercel), so switch to whichever isn't selected.
+    const target = (await picker.textContent())?.includes("GB")
+      ? { code: "JP", name: "Japan" }
+      : { code: "GB", name: "United Kingdom" };
 
     await picker.click();
-    await page.getByRole("menuitemradio", { name: /United Kingdom/ }).click();
+    await page
+      .getByRole("menuitemradio", { name: new RegExp(target.name) })
+      .click();
 
-    await expect(picker).toContainText("GB");
+    await expect(picker).toContainText(target.code);
     await expect(
-      page.getByText(
-        /Availability in United Kingdom|options in United Kingdom/,
-      ),
+      page.getByText(new RegExp(`(Availability|options) in ${target.name}`)),
     ).toBeVisible();
 
     const cookies = await context.cookies();
-    expect(cookies.find((c) => c.name === "region")?.value).toBe("GB");
+    expect(cookies.find((c) => c.name === "region")?.value).toBe(target.code);
 
     // The choice sticks across pages and drives the release calendar.
     await page.goto("/upcoming");
-    await expect(page.getByText(/in United Kingdom/)).toBeVisible();
+    await expect(page.getByText(`in ${target.name}`)).toBeVisible();
   });
 });
