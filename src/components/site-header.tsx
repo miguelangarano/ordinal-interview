@@ -2,14 +2,16 @@ import { Clapperboard } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { CategoryNav } from "@/components/category-nav";
+import { RegionPicker } from "@/components/region-picker";
 import { SearchBox } from "@/components/search-box";
 import { api } from "@/trpc/server";
 
 export async function SiteHeader() {
   // The nav is a nice-to-have; never let a TMDB hiccup take the page down.
-  const genres = await api.movies
-    .topGenres()
-    .catch(() => ({ top: [], rest: [] }));
+  const [genres, regions] = await Promise.all([
+    api.movies.topGenres().catch(() => ({ top: [], rest: [] })),
+    api.movies.regions().catch(() => null),
+  ]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/5 bg-background/70 backdrop-blur-xl">
@@ -27,6 +29,9 @@ export async function SiteHeader() {
               <SearchBox />
             </Suspense>
           </div>
+          {regions && (
+            <RegionPicker current={regions.current} regions={regions.regions} />
+          )}
         </div>
         <CategoryNav top={genres.top} rest={genres.rest} />
       </div>

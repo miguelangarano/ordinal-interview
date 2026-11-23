@@ -50,3 +50,14 @@ export function flagEmoji(code: string) {
     ...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65),
   );
 }
+
+const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+
+/** "GB" → "United Kingdom". */
+export function regionName(code: string) {
+  try {
+    return regionNames.of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
