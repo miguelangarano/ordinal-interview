@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { providerUrl } from "@/lib/provider-links";
+import { regionName } from "@/lib/regions";
 import { tmdbImage } from "@/lib/tmdb-image";
 
 type Provider = {
@@ -69,13 +70,30 @@ function ProviderGroup({
   );
 }
 
-/** Where to watch in the US. Data provided by JustWatch via TMDB. */
-export function WatchProviders({ watch }: { watch: Watch | null }) {
-  if (
-    !watch ||
-    watch.stream.length + watch.rent.length + watch.buy.length === 0
-  ) {
-    return null;
+/** Where to watch in the viewer's region. Data from JustWatch via TMDB. */
+export function WatchProviders({
+  watch,
+  region,
+}: {
+  watch: Watch | null;
+  region: string;
+}) {
+  const country = regionName(region);
+  const hasAny =
+    !!watch && watch.stream.length + watch.rent.length + watch.buy.length > 0;
+
+  if (!watch || !hasAny) {
+    return (
+      <section className="py-6">
+        <h2 className="mb-2 text-xl font-semibold tracking-tight">
+          Where to watch
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          No streaming, rental or purchase options in {country} yet. Try another
+          region from the menu in the header.
+        </p>
+      </section>
+    );
   }
 
   return (
@@ -83,7 +101,7 @@ export function WatchProviders({ watch }: { watch: Watch | null }) {
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-xl font-semibold tracking-tight">Where to watch</h2>
         <p className="text-xs text-muted-foreground">
-          US availability, powered by{" "}
+          Availability in {country}, powered by{" "}
           {watch.link ? (
             <a
               href={watch.link}

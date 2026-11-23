@@ -215,7 +215,7 @@ export default async function MoviePage({ params }: Props) {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <WatchProviders watch={movie.watch} />
+        <WatchProviders watch={movie.watch} region={movie.watchRegion} />
         {/* Render the cast immediately; Wikipedia links stream in after. */}
         <Suspense fallback={<CastList cast={movie.cast} />}>
           <CastWithWikipedia cast={movie.cast} />

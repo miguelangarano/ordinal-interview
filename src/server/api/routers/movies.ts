@@ -212,9 +212,9 @@ export const moviesRouter = createTRPCRouter({
         writers,
         cast: m.credits.cast.sort((a, b) => a.order - b.order).slice(0, 15),
         trailerKey: trailer?.key ?? null,
+        watchRegion: ctx.region,
         watch: providers
           ? {
-              region: ctx.region,
               link: providers.link ?? null,
               stream: providers.flatrate ?? [],
               rent: providers.rent ?? [],
