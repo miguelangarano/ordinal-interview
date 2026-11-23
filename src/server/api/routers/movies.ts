@@ -100,38 +100,6 @@ export const moviesRouter = createTRPCRouter({
       );
     }),
 
-  // Legacy page-based endpoints; removed once the UI moves to `list`.
-  trending: publicProcedure
-    .input(
-      z.object({
-        window: z.enum(["day", "week"]).default("day"),
-        cursor: z.number().int().min(1).max(500).default(1),
-      }),
-    )
-    .query(async ({ input }) => {
-      const data = await tmdb.trending(input.window, input.cursor);
-      return {
-        results: data.results,
-        nextCursor: data.page < data.total_pages ? data.page + 1 : undefined,
-      };
-    }),
-
-  search: publicProcedure
-    .input(
-      z.object({
-        query: z.string().trim().min(1),
-        cursor: z.number().int().min(1).max(500).default(1),
-      }),
-    )
-    .query(async ({ input }) => {
-      const data = await tmdb.search(input.query, input.cursor);
-      return {
-        results: data.results,
-        totalResults: data.total_results,
-        nextCursor: data.page < data.total_pages ? data.page + 1 : undefined,
-      };
-    }),
-
   genres: publicProcedure.query(async () => {
     const { genres } = await tmdb.genres();
     return Object.fromEntries(genres.map((g) => [g.id, g.name])) as Record<
