@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -73,3 +73,33 @@ jobs:
           name: playwright-traces
           path: test-results/
           retention-days: 7
+
+  deploy:
+    name: Deploy to production
+    # Only main, and only once lint, typecheck, unit and e2e tests all pass.
+    needs: [checks, e2e]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://ordinal-interview.vercel.app
+    # Never run two production deploys at once; queue them in order instead.
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Uploads the source and lets Vercel build it (TMDB_ACCESS_TOKEN lives
+      # in the Vercel project's environment variables).
+      - name: Deploy to Vercel
+        run: node scripts/deploy-vercel.mjs
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
