@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ReleaseCalendar } from "@/components/upcoming/release-calendar";
 import { addMonths, isMonth, monthLabel, monthOf } from "@/lib/month";
+import {
+  readCookie,
+  REGION_COOKIE,
+  regionName,
+  resolveRegion,
+} from "@/lib/regions";
 import { api } from "@/trpc/server";
 
 type Props = { searchParams: Promise<{ month?: string }> };
@@ -31,6 +38,11 @@ export default async function UpcomingPage({ searchParams }: Props) {
   }
   const month = requested ?? current;
 
+  const requestHeaders = await headers();
+  const region = resolveRegion({
+    cookie: readCookie(requestHeaders.get("cookie"), REGION_COOKIE),
+    ipCountry: requestHeaders.get("x-vercel-ip-country"),
+  });
   const movies = await api.movies.upcoming({ month });
 
   return (
@@ -45,6 +57,7 @@ export default async function UpcomingPage({ searchParams }: Props) {
           release_date: m.release_date,
         }))}
         canGoBack={month > current}
+        regionLabel={regionName(region)}
       />
     </div>
   );

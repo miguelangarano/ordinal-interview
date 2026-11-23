@@ -19,6 +19,7 @@ export function ReleaseCalendar({
   today,
   movies,
   canGoBack,
+  regionLabel,
 }: {
   /** "YYYY-MM" */
   month: string;
@@ -26,6 +27,8 @@ export function ReleaseCalendar({
   today: string;
   movies: CalendarMovie[];
   canGoBack: boolean;
+  /** e.g. "United Kingdom": the country whose release dates are shown. */
+  regionLabel: string;
 }) {
   // Movies arrive most-anticipated first; keep that order within each day.
   const byDay = useMemo(() => {
@@ -61,8 +64,8 @@ export function ReleaseCalendar({
           </h1>
           <p className="text-sm text-muted-foreground">
             {movies.length > 0
-              ? `${movies.length} anticipated releases. Click a day to see them.`
-              : "No releases found for this month yet."}
+              ? `${movies.length} anticipated releases in ${regionLabel}. Click a day to see them.`
+              : `No releases found in ${regionLabel} for this month yet.`}
           </p>
         </div>
         <div className="flex items-center gap-2">
