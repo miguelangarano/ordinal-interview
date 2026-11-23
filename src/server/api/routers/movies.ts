@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { tmdb } from "@/server/tmdb/client";
+import { englishWikipediaUrls } from "@/server/wikipedia";
 
 const pageInput = z.number().int().min(1).max(500).default(1);
 
@@ -38,6 +39,38 @@ export const moviesRouter = createTRPCRouter({
       string
     >;
   }),
+
+  /**
+   * English Wikipedia URLs for a set of TMDB people, keyed by person id.
+   * Best-effort: people without a Wikidata entry or an English article are
+   * left out, and a failed lookup for one person never fails the rest.
+   */
+  castWikipedia: publicProcedure
+    .input(
+      z.object({
+        personIds: z.array(z.number().int().positive()).max(20),
+      }),
+    )
+    .query(async ({ input }) => {
+      const externalIds = await Promise.allSettled(
+        input.personIds.map((id) => tmdb.personExternalIds(id)),
+      );
+      const qidByPerson = new Map<number, string>();
+      for (const result of externalIds) {
+        if (result.status === "fulfilled" && result.value.wikidata_id) {
+          qidByPerson.set(result.value.id, result.value.wikidata_id);
+        }
+      }
+
+      const urlByQid = await englishWikipediaUrls([...qidByPerson.values()]);
+
+      const urls: Record<number, string> = {};
+      for (const [personId, qid] of qidByPerson) {
+        const url = urlByQid[qid];
+        if (url) urls[personId] = url;
+      }
+      return urls;
+    }),
 
   byId: publicProcedure
     .input(z.object({ id: z.number().int().positive() }))
