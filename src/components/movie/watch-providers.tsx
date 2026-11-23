@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { providerUrl } from "@/lib/provider-links";
 import { tmdbImage } from "@/lib/tmdb-image";
 
 type Provider = {
@@ -14,7 +15,15 @@ type Watch = {
   buy: Provider[];
 };
 
-function ProviderGroup({ label, items }: { label: string; items: Provider[] }) {
+function ProviderGroup({
+  label,
+  items,
+  fallbackUrl,
+}: {
+  label: string;
+  items: Provider[];
+  fallbackUrl: string | null;
+}) {
   if (items.length === 0) return null;
   return (
     <div>
@@ -24,18 +33,33 @@ function ProviderGroup({ label, items }: { label: string; items: Provider[] }) {
       <ul className="flex flex-wrap gap-2">
         {items.map((p) => {
           const logo = tmdbImage(p.logo_path, "w92");
+          const href = providerUrl(p.provider_name, fallbackUrl);
+          const content = logo ? (
+            <Image
+              src={logo}
+              alt={p.provider_name}
+              width={44}
+              height={44}
+              className="rounded-lg ring-1 ring-white/10 transition group-hover:scale-110 group-hover:ring-primary"
+            />
+          ) : (
+            <span className="text-sm">{p.provider_name}</span>
+          );
           return (
-            <li key={p.provider_id} title={p.provider_name}>
-              {logo ? (
-                <Image
-                  src={logo}
-                  alt={p.provider_name}
-                  width={40}
-                  height={40}
-                  className="rounded-lg ring-1 ring-white/10"
-                />
+            <li key={p.provider_id}>
+              {href ? (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={p.provider_name}
+                  aria-label={`${p.provider_name} (opens in a new tab)`}
+                  className="group block rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                >
+                  {content}
+                </a>
               ) : (
-                <span className="text-sm">{p.provider_name}</span>
+                <span title={p.provider_name}>{content}</span>
               )}
             </li>
           );
@@ -55,27 +79,38 @@ export function WatchProviders({ watch }: { watch: Watch | null }) {
   }
 
   return (
-    <div className="space-y-4 rounded-xl border bg-card/50 p-5">
-      <h2 className="font-semibold">Where to watch</h2>
-      <ProviderGroup label="Stream" items={watch.stream} />
-      <ProviderGroup label="Rent" items={watch.rent} />
-      <ProviderGroup label="Buy" items={watch.buy} />
-      <p className="text-xs text-muted-foreground">
-        US availability, powered by{" "}
-        {watch.link ? (
-          <a
-            href={watch.link}
-            target="_blank"
-            rel="noreferrer"
-            className="underline underline-offset-4 hover:text-foreground"
-          >
-            JustWatch
-          </a>
-        ) : (
-          "JustWatch"
-        )}
-        .
-      </p>
-    </div>
+    <section className="py-6">
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-xl font-semibold tracking-tight">Where to watch</h2>
+        <p className="text-xs text-muted-foreground">
+          US availability, powered by{" "}
+          {watch.link ? (
+            <a
+              href={watch.link}
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-4 hover:text-foreground"
+            >
+              JustWatch
+            </a>
+          ) : (
+            "JustWatch"
+          )}
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-x-12 gap-y-5 rounded-xl border bg-card/50 p-5">
+        <ProviderGroup
+          label="Stream"
+          items={watch.stream}
+          fallbackUrl={watch.link}
+        />
+        <ProviderGroup
+          label="Rent"
+          items={watch.rent}
+          fallbackUrl={watch.link}
+        />
+        <ProviderGroup label="Buy" items={watch.buy} fallbackUrl={watch.link} />
+      </div>
+    </section>
   );
 }
