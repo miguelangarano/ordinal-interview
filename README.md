@@ -1,6 +1,6 @@
 # Reel
 
-[![CI](https://github.com/miguelangarano/ordinal-interview/actions/workflows/ci.yml/badge.svg)](https://github.com/miguelangarano/ordinal-interview/actions/workflows/ci.yml)
+[![CI/CD](https://github.com/miguelangarano/ordinal-interview/actions/workflows/ci.yml/badge.svg)](https://github.com/miguelangarano/ordinal-interview/actions/workflows/ci.yml)
 
 A movie discovery app built on the [TMDB API](https://developer.themoviedb.org/docs/getting-started): see what's trending today, browse by category, plan around upcoming releases, and dig into any movie.
 
@@ -120,14 +120,23 @@ They use the real TMDB API, so `.env.local` needs a valid token. They check beha
 E2E_BASE_URL=https://ordinal-interview.vercel.app pnpm test:e2e
 ```
 
-### Continuous integration
+### CI/CD
 
-[GitHub Actions](.github/workflows/ci.yml) runs on every push and pull request, with two jobs in parallel:
+[GitHub Actions](.github/workflows/ci.yml) runs on every push and pull request:
 
-- **Lint, typecheck & unit tests:** `pnpm lint`, `pnpm typecheck`, `pnpm test`
-- **End-to-end tests:** builds the app and runs the full Playwright suite. If a test fails, its trace is uploaded so you can step through what the browser saw.
+1. **Lint, typecheck & unit tests:** `pnpm lint`, `pnpm typecheck`, `pnpm test`
+2. **End-to-end tests:** builds the app and runs the full Playwright suite. If a test fails, its trace is uploaded so you can step through what the browser saw.
+3. **Deploy to production:** only for pushes to `main`, and only after both jobs above pass. It ships the commit to https://ordinal-interview.vercel.app with [`scripts/deploy-vercel.mjs`](scripts/deploy-vercel.mjs) and waits until it's live.
 
-The e2e job reads the TMDB token from the `TMDB_ACCESS_TOKEN` repository secret. A newer push to the same branch cancels the run still in progress.
+A red build never reaches production, and production always matches the latest green `main`. Pull requests and other branches get the checks but no deploy. Production deploys run one at a time, in order.
+
+Repository settings it relies on:
+
+| Name | Kind | Used by |
+| --- | --- | --- |
+| `TMDB_ACCESS_TOKEN` | secret | e2e tests |
+| `VERCEL_TOKEN` | secret | deploy |
+| `VERCEL_PROJECT_ID`, `VERCEL_ORG_ID` | variables | deploy |
 
 ## Stack
 
@@ -160,7 +169,15 @@ e2e/                  Playwright end-to-end tests
 
 ## Deploying
 
-Any Node host works. On Vercel: import the repo, add `TMDB_ACCESS_TOKEN` as an environment variable, and deploy. The defaults (`pnpm build`) need no extra configuration.
+Production deploys are automatic (see [CI/CD](#cicd)). Every green push to `main` goes live on Vercel. The production build reads `TMDB_ACCESS_TOKEN` from the Vercel project's environment variables.
+
+To deploy by hand (e.g. to your own Vercel project):
+
+```bash
+VERCEL_TOKEN=… VERCEL_PROJECT_ID=prj_… VERCEL_ORG_ID=team_… node scripts/deploy-vercel.mjs
+```
+
+The script uses Vercel's REST API instead of the Vercel CLI, so it also works with project-scoped tokens, which the CLI rejects. Any Node host works too: set `TMDB_ACCESS_TOKEN`, then run `pnpm build && pnpm start`.
 
 ## What I'd do next
 
