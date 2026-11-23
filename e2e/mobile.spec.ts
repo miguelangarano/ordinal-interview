@@ -24,7 +24,7 @@ test.describe("mobile", () => {
   test("the calendar shows counts on small screens", async ({ page }) => {
     await page.goto("/upcoming");
     const day = page.locator('button[aria-label*="on day"]').first();
-    await expect(day).toBeVisible();
+    await expect(day).toBeVisible({ timeout: 20_000 }); // cold cache allowance
     await day.click();
     await expect(page.getByRole("dialog")).toBeVisible();
   });

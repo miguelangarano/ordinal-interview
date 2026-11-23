@@ -1,5 +1,12 @@
 import { expect, test } from "@playwright/test";
 
+/**
+ * The first visit to a month in a region looks up ~100 local release dates
+ * from TMDB before the calendar renders (a skeleton shows meanwhile), so
+ * assertions on calendar content allow for a cold cache.
+ */
+const COLD_LOAD = { timeout: 20_000 };
+
 test.describe("upcoming calendar", () => {
   test("shows every day of the month and bursts a day open", async ({
     page,
@@ -9,11 +16,12 @@ test.describe("upcoming calendar", () => {
     await expect(page).toHaveURL(/\/upcoming$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       /^[A-Z][a-z]+ \d{4}$/,
+      COLD_LOAD,
     );
 
     // Pick the busiest day so the burst has plenty of posters.
     const days = page.locator('button[aria-label*="on day"]');
-    await expect(days.first()).toBeVisible();
+    await expect(days.first()).toBeVisible(COLD_LOAD);
     const labels = await days.evaluateAll((els) =>
       els.map((el) => el.getAttribute("aria-label") ?? ""),
     );
@@ -36,14 +44,15 @@ test.describe("upcoming calendar", () => {
   test("navigates between months but not into the past", async ({ page }) => {
     await page.goto("/upcoming");
     const title = page.getByRole("heading", { level: 1 });
+    await expect(title).toBeVisible(COLD_LOAD);
     const thisMonth = await title.textContent();
 
     await page.getByRole("link", { name: "Next month" }).click();
     await expect(page).toHaveURL(/month=\d{4}-\d{2}/);
-    await expect(title).not.toHaveText(thisMonth!);
+    await expect(title).not.toHaveText(thisMonth!, COLD_LOAD);
 
     await page.getByRole("link", { name: "Previous month" }).click();
-    await expect(title).toHaveText(thisMonth!);
+    await expect(title).toHaveText(thisMonth!, COLD_LOAD);
     await expect(
       page.getByRole("link", { name: "Previous month" }),
     ).toHaveCount(0);

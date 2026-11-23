@@ -28,6 +28,9 @@ test.describe("region", () => {
 
     // The choice sticks across pages and drives the release calendar.
     await page.goto("/upcoming");
-    await expect(page.getByText(`in ${target.name}`)).toBeVisible();
+    // First visit for this region looks up local release dates: allow time.
+    await expect(page.getByText(`in ${target.name}`)).toBeVisible({
+      timeout: 20_000,
+    });
   });
 });
