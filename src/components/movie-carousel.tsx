@@ -5,12 +5,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MovieCard, MovieCardSkeleton } from "@/components/movie-card";
+import { CAROUSEL_BATCH } from "@/lib/batch-sizes";
 import type { ListSource } from "@/server/api/routers/movies";
 import { useTRPC } from "@/trpc/react";
 import { cn } from "@/lib/utils";
-
-/** Movies loaded per request; another batch loads as you reach the end. */
-export const CAROUSEL_BATCH = 10;
 
 const cardWidth = "w-36 sm:w-40 lg:w-44";
 

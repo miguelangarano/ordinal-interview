@@ -5,11 +5,9 @@ import { useMemo } from "react";
 import { LoadMore } from "@/components/load-more";
 import { MovieCard, MovieCardSkeleton } from "@/components/movie-card";
 import { MovieGrid } from "@/components/movie-grid";
+import { RESULTS_BATCH } from "@/lib/batch-sizes";
 import type { ListSource } from "@/server/api/routers/movies";
 import { useTRPC } from "@/trpc/react";
-
-/** The first load shows the top 50; scrolling loads 50 more at a time. */
-export const RESULTS_BATCH = 50;
 
 export function MovieResults({
   source,

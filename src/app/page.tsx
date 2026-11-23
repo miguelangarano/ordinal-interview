@@ -1,5 +1,6 @@
 import { Hero } from "@/components/home/hero";
-import { CAROUSEL_BATCH, MovieCarousel } from "@/components/movie-carousel";
+import { MovieCarousel } from "@/components/movie-carousel";
+import { CAROUSEL_BATCH } from "@/lib/batch-sizes";
 import { api, getQueryClient, HydrateClient, trpc } from "@/trpc/server";
 
 const nextCursor = (last: { nextCursor?: number }) => last.nextCursor;
