@@ -59,6 +59,45 @@ export const tmdb = {
     );
   },
 
+  popular(page = 1) {
+    return tmdbFetch("/movie/popular", pagedMoviesSchema, { page }, 60 * 30);
+  },
+
+  /** Most popular movies in a genre. */
+  byGenre(genreId: number, page = 1) {
+    return tmdbFetch(
+      "/discover/movie",
+      pagedMoviesSchema,
+      {
+        with_genres: genreId,
+        sort_by: "popularity.desc",
+        include_adult: "false",
+        page,
+      },
+      60 * 30,
+    );
+  },
+
+  /**
+   * Movies whose primary release date falls in [from, to] (YYYY-MM-DD),
+   * most anticipated first. Uses the primary date so each result's
+   * `release_date` matches the range we asked for.
+   */
+  releasingBetween(from: string, to: string, page = 1) {
+    return tmdbFetch(
+      "/discover/movie",
+      pagedMoviesSchema,
+      {
+        "primary_release_date.gte": from,
+        "primary_release_date.lte": to,
+        sort_by: "popularity.desc",
+        include_adult: "false",
+        page,
+      },
+      60 * 60,
+    );
+  },
+
   movie(id: number) {
     return tmdbFetch(`/movie/${id}`, movieDetailsSchema, {
       append_to_response: "credits,videos,recommendations,watch/providers",
