@@ -24,9 +24,11 @@ export function CategoryNav({ top, rest }: { top: Genre[]; rest: Genre[] }) {
   const activeInMore = rest.find((g) => g.id === activeId);
 
   return (
+    // Vertical padding matters: horizontal scrolling also clips the y axis, so
+    // without it the Upcoming button's ring and glow get cut off.
     <nav
       aria-label="Categories"
-      className="scrollbar-none -mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-3 sm:-mx-6 sm:px-6"
+      className="scrollbar-none -mx-4 flex items-center gap-2 overflow-x-auto px-4 pt-1.5 pb-2.5 sm:-mx-6 sm:px-6"
     >
       <Link
         href="/upcoming"
