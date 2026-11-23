@@ -6,6 +6,8 @@ import {
   movieDetailsSchema,
   pagedMoviesSchema,
   personExternalIdsSchema,
+  regionsSchema,
+  releaseDatesSchema,
 } from "./schemas";
 
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -78,22 +80,45 @@ export const tmdb = {
   },
 
   /**
-   * Movies whose primary release date falls in [from, to] (YYYY-MM-DD),
-   * most anticipated first. Uses the primary date so each result's
-   * `release_date` matches the range we asked for.
+   * Movies with a public release (theatrical or digital) in `region` between
+   * [from, to] (YYYY-MM-DD), most anticipated first. Note that each result's
+   * `release_date` is still its worldwide premiere; use `releaseDates` for
+   * the regional day.
    */
-  releasingBetween(from: string, to: string, page = 1) {
+  releasingInRegion(region: string, from: string, to: string, page = 1) {
     return tmdbFetch(
       "/discover/movie",
       pagedMoviesSchema,
       {
-        "primary_release_date.gte": from,
-        "primary_release_date.lte": to,
+        region,
+        "release_date.gte": from,
+        "release_date.lte": to,
+        with_release_type: "2|3|4",
         sort_by: "popularity.desc",
         include_adult: "false",
         page,
       },
       60 * 60,
+    );
+  },
+
+  /** Every country's release dates for a movie. */
+  releaseDates(id: number) {
+    return tmdbFetch(
+      `/movie/${id}/release_dates`,
+      releaseDatesSchema,
+      {},
+      60 * 60 * 24,
+    );
+  },
+
+  /** Countries TMDB has watch-provider data for. */
+  regions() {
+    return tmdbFetch(
+      "/watch/providers/regions",
+      regionsSchema,
+      {},
+      60 * 60 * 24 * 7,
     );
   },
 

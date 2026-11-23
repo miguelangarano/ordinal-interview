@@ -100,3 +100,23 @@ export const personExternalIdsSchema = z.object({
   id: z.number(),
   wikidata_id: z.string().nullable().default(null),
 });
+
+export const regionsSchema = z.object({
+  results: z.array(
+    z.object({ iso_3166_1: z.string(), english_name: z.string() }),
+  ),
+});
+
+export const releaseDatesSchema = z.object({
+  id: z.number(),
+  results: z
+    .array(
+      z.object({
+        iso_3166_1: z.string(),
+        release_dates: z.array(
+          z.object({ release_date: z.string(), type: z.number() }),
+        ),
+      }),
+    )
+    .default([]),
+});

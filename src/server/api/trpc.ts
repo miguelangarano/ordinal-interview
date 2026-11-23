@@ -1,10 +1,16 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { readCookie, REGION_COOKIE, resolveRegion } from "@/lib/regions";
 import { TmdbError } from "@/server/tmdb/client";
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  return { ...opts };
+  const region = resolveRegion({
+    cookie: readCookie(opts.headers.get("cookie"), REGION_COOKIE),
+    // Set by Vercel on every request; absent locally.
+    ipCountry: opts.headers.get("x-vercel-ip-country"),
+  });
+  return { ...opts, region };
 };
 
 const t = initTRPC.context<typeof createTRPCContext>().create({

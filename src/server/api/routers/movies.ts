@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { tmdb } from "@/server/tmdb/client";
+import { mapWithConcurrency } from "@/lib/concurrency";
+import { regionalReleaseDate } from "@/lib/release-dates";
 import { movieWindow } from "@/server/tmdb/paginate";
 import { englishWikipediaUrls } from "@/server/wikipedia";
 
@@ -76,12 +78,13 @@ export const moviesRouter = createTRPCRouter({
   }),
 
   /**
-   * The most anticipated movies releasing in a month ("YYYY-MM"), for the
-   * calendar. Capped at the 100 most popular so busy months stay usable.
+   * The most anticipated movies releasing in the viewer's region in a month
+   * ("YYYY-MM"), each placed on its local release day. Capped at the 100
+   * most popular so busy months stay usable.
    */
   upcoming: publicProcedure
     .input(z.object({ month: z.string().regex(MONTH) }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const [year, month] = input.month.split("-").map(Number) as [
         number,
         number,
@@ -91,14 +94,34 @@ export const moviesRouter = createTRPCRouter({
       const to = `${input.month}-${String(lastDay).padStart(2, "0")}`;
 
       const { results } = await movieWindow(
-        (page) => tmdb.releasingBetween(from, to, page),
+        (page) => tmdb.releasingInRegion(ctx.region, from, to, page),
         0,
         100,
       );
-      return results.filter(
-        (m) => m.poster_path && m.release_date >= from && m.release_date <= to,
+
+      // Discover returns worldwide premiere dates; look up the local day.
+      const dated = await mapWithConcurrency(
+        results.filter((m) => m.poster_path),
+        16,
+        async (movie) => {
+          const dates = await tmdb.releaseDates(movie.id).catch(() => null);
+          const day = dates
+            ? regionalReleaseDate(dates.results, ctx.region, from, to)
+            : null;
+          return day ? { ...movie, release_date: day } : null;
+        },
       );
+      return dated.filter((m) => m !== null);
     }),
+
+  /** Countries the viewer can pick, plus the one currently in use. */
+  regions: publicProcedure.query(async ({ ctx }) => {
+    const { results } = await tmdb.regions();
+    const regions = results
+      .map((r) => ({ code: r.iso_3166_1, name: r.english_name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    return { current: ctx.region, regions };
+  }),
 
   genres: publicProcedure.query(async () => {
     const { genres } = await tmdb.genres();
@@ -142,7 +165,7 @@ export const moviesRouter = createTRPCRouter({
 
   byId: publicProcedure
     .input(z.object({ id: z.number().int().positive() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const m = await tmdb.movie(input.id);
 
       const trailer =
@@ -165,7 +188,7 @@ export const moviesRouter = createTRPCRouter({
         ),
       ].slice(0, 3);
 
-      const providers = m["watch/providers"].results.US;
+      const providers = m["watch/providers"].results[ctx.region];
 
       return {
         id: m.id,
@@ -187,12 +210,11 @@ export const moviesRouter = createTRPCRouter({
         genres: m.genres,
         directors,
         writers,
-        cast: m.credits.cast
-          .sort((a, b) => a.order - b.order)
-          .slice(0, 15),
+        cast: m.credits.cast.sort((a, b) => a.order - b.order).slice(0, 15),
         trailerKey: trailer?.key ?? null,
         watch: providers
           ? {
+              region: ctx.region,
               link: providers.link ?? null,
               stream: providers.flatrate ?? [],
               rent: providers.rent ?? [],
