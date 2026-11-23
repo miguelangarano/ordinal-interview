@@ -12,6 +12,9 @@ import { cn } from "@/lib/utils";
 
 const cardWidth = "w-36 sm:w-40 lg:w-44";
 
+/** Roughly one card: how close to the end counts as "reached the last one". */
+const END_THRESHOLD_PX = 200;
+
 export function MovieCarousel({
   title,
   subtitle,
@@ -51,9 +54,9 @@ export function MovieCarousel({
     if (!el) return;
     const remaining = el.scrollWidth - el.clientWidth - el.scrollLeft;
     setEdges({ start: el.scrollLeft <= 4, end: remaining <= 4 });
-    // Nearly at the last loaded movie: fetch the next batch so it's ready.
+    // The last loaded movie (e.g. the 10th) is in view: load the next 10.
     if (
-      remaining < el.clientWidth * 0.75 &&
+      remaining < END_THRESHOLD_PX &&
       hasNextPage &&
       !isFetchingNextPage
     ) {
