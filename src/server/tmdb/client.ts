@@ -5,6 +5,7 @@ import {
   genreListSchema,
   movieDetailsSchema,
   pagedMoviesSchema,
+  personExternalIdsSchema,
 } from "./schemas";
 
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -70,6 +71,16 @@ export const tmdb = {
       pagedMoviesSchema,
       { query, page, include_adult: "false" },
       60 * 5,
+    );
+  },
+
+  personExternalIds(id: number) {
+    // External IDs almost never change; cache for a week.
+    return tmdbFetch(
+      `/person/${id}/external_ids`,
+      personExternalIdsSchema,
+      {},
+      60 * 60 * 24 * 7,
     );
   },
 

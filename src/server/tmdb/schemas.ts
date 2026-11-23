@@ -95,3 +95,8 @@ export type MovieDetailsResponse = z.infer<typeof movieDetailsSchema>;
 export const genreListSchema = z.object({
   genres: z.array(z.object({ id: z.number(), name: z.string() })),
 });
+
+export const personExternalIdsSchema = z.object({
+  id: z.number(),
+  wikidata_id: z.string().nullable().default(null),
+});
